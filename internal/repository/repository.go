@@ -7,25 +7,28 @@ import (
 	"go.uber.org/zap"
 )
 
-// Repositories base methods
-type Repositories interface {
+//go:generate mockery --all --recursive --output ./mocks
+type Repository interface {
+	Ping(context.Context) error
 	CarStorage() CarStorage
 }
 
-type repository struct {
-	car CarStorage
+type repositories struct {
+	carStorage CarStorage
+	ping       Ping
 }
 
-func NewRepositories(dbConn *infrastructure.DB, log *zap.SugaredLogger) Repositories {
-	return &repository{
+func NewRepositories(dbConn infrastructure.DB, log *zap.SugaredLogger) Repository {
+	return &repositories{
+		ping:       newPing(dbConn),
 		carStorage: newCarStorage(dbConn, log),
 	}
 }
 
-func (r repository) Ping(ctx context.Context) error {
-	if err := r.Ping(); err != nil {
-		return err
-	}
+func (r *repositories) Ping(ctx context.Context) error {
+	return r.ping.Ping(ctx)
+}
 
-	return nil
+func (r *repositories) CarStorage() CarStorage {
+	return r.carStorage
 }

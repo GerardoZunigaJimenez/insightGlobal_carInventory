@@ -30,3 +30,7 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+/.idea/insightGlobal_carInventory.iml
+/.idea/go.imports.xml
+/.idea/modules.xml
+/.idea/vcs.xml
