@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"transaction-service/internal/repository"
+	"insightGlobal_carInventory/internal/repository"
 )
 
 // HealthCheckService specific methods
@@ -12,10 +12,10 @@ type HealthCheckService interface {
 }
 
 type healthCheckService struct {
-	repository repository.Repositories
+	repository repository.Repository
 }
 
-func newHealthCheckService(r repository.Repositories) *healthCheckService {
+func newHealthCheckService(r repository.Repository) *healthCheckService {
 	return &healthCheckService{repository: r}
 }
 

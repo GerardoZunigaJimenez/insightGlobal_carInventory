@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-//go:generate mockery --all --recursive --output ./mocks
+//go:generate mockery
 type Repository interface {
 	Ping(context.Context) error
 	CarStorage() CarStorage
