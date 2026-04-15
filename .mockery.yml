@@ -22,6 +22,10 @@ require-template-schema-exists: true
 template: testify
 template-schema: '{{.Template}}.schema.json'
 packages:
+  insightGlobal_carInventory/internal/infrastructure:
+    config:
+      filename: "{{.InterfaceName}}.go"
+      all: true
   insightGlobal_carInventory/internal/repository:
     config:
       filename: "{{.InterfaceName}}.go"
