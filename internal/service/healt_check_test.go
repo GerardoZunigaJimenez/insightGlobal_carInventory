@@ -12,23 +12,32 @@ import (
 )
 
 func TestHealthCheckService_PingMysql(t *testing.T) {
-	t.Parallel()
+
 	ctx := context.Background()
-	mockRepo := repoMocks.NewMockRepository(t)
+	var mockRepo *repoMocks.MockRepository
+	var mockInfra *infraMocks.MockDB
 
 	tests := []struct {
 		name          string
-		repository    repository.Repository
+		repository    func() repository.Repository
 		repositoryErr error
 		wantErr       error
 	}{
 		{
-			name:       "PingMysql",
-			repository: mockRepo,
+			name: "PingMysql",
+			repository: func() repository.Repository {
+				mockRepo = repoMocks.NewMockRepository(t)
+				mockInfra = nil
+				return mockRepo
+			},
 		},
 		{
-			name:          "PingMysql",
-			repository:    mockRepo,
+			name: "PingMysql with error",
+			repository: func() repository.Repository {
+				mockRepo = repoMocks.NewMockRepository(t)
+				mockInfra = nil
+				return mockRepo
+			},
 			repositoryErr: errors.New("expected error"),
 			wantErr:       errors.New("expected error"),
 		},
@@ -36,23 +45,28 @@ func TestHealthCheckService_PingMysql(t *testing.T) {
 			name: "unable to ping the DB, because the reference is nil",
 			repository: func() repository.Repository {
 				dbConn := infraMocks.NewMockDB(t)
-				dbConn.On("IsAlive").Return(errors.New("db connection has not been set up"))
 				r := repository.NewRepositories(dbConn, nil)
+				mockInfra = dbConn
+				mockRepo = nil
 				return r
-			}(),
+			},
 			wantErr: errors.New("unable to ping the DB, because the reference is nil"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.repository != nil {
+			s := newHealthCheckService(tt.repository())
+
+			if mockRepo != nil {
 				mockRepo.On("Ping", ctx).Return(tt.repositoryErr)
 			}
+			if mockInfra != nil {
+				mockInfra.On("IsAlive").Return(errors.New("db connection has not been set up"))
+			}
 
-			s := newHealthCheckService(tt.repository)
 			err := s.PingMysql(ctx)
-			assert.Equal(t, err, tt.wantErr)
+			assert.Equal(t, tt.wantErr, err)
 		})
 	}
 
