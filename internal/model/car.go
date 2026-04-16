@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	StorageIdCar       = "id"
 	StorageDisabledCar = "disabled"
 	StorageColor       = "color"
 	StorageMileage     = "mileage"

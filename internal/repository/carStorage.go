@@ -43,7 +43,7 @@ func (c carStorage) Create(ctx context.Context, car *model.Car) error {
 func (c carStorage) GetByID(ctx context.Context, id uuid.UUID) (*model.Car, error) {
 	car := &model.Car{}
 	err := c.dbConn.Select().Model(car).
-		WherePK(car.ID.String()).
+		Where(fmt.Sprintf("%s = ?", model.StorageIdCar), id.String()).
 		Where(fmt.Sprintf("%s = ?", model.StorageDisabledCar), false).
 		Scan(ctx)
 	if err != nil {
@@ -55,8 +55,8 @@ func (c carStorage) GetByID(ctx context.Context, id uuid.UUID) (*model.Car, erro
 }
 
 func (c carStorage) List(ctx context.Context, pageSize int, pageNumber int) ([]*model.Car, error) {
-	var cars []*model.Car
-	err := c.dbConn.Select().Model(cars).
+	cars := make([]*model.Car, 0, pageSize)
+	err := c.dbConn.Select().Model(&cars).
 		Where(fmt.Sprintf("%s = ?", model.StorageDisabledCar), false).
 		Limit(pageSize).Offset((pageNumber - 1) * pageSize).Scan(ctx)
 	if err != nil {
@@ -69,7 +69,7 @@ func (c carStorage) List(ctx context.Context, pageSize int, pageNumber int) ([]*
 
 func (c carStorage) Update(ctx context.Context, car *model.Car) error {
 	_, err := c.dbConn.Update().Model(car).
-		WherePK(car.ID.String()).
+		Where(fmt.Sprintf("%s = ?", model.StorageIdCar), car.ID.String()).
 		Set(fmt.Sprintf("%s = ?", model.StorageDisabledCar), car.Disabled).
 		Set(fmt.Sprintf("%s = ?", model.StorageColor), car.Color).
 		Set(fmt.Sprintf("%s = ?", model.StorageMileage), car.Mileage).
@@ -89,7 +89,7 @@ func (c carStorage) Delete(ctx context.Context, id uuid.UUID) error {
 	var updated *model.Car
 	_, err := c.dbConn.Update().
 		Model(updated).
-		WherePK(id.String()).
+		Where(fmt.Sprintf("%s = ?", model.StorageIdCar), id.String()).
 		Set(fmt.Sprintf("%s = ?", model.StorageDisabledCar), true).
 		Exec(ctx)
 	if err != nil {
