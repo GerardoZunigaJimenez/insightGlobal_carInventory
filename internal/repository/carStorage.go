@@ -31,7 +31,7 @@ func newCarStorage(db infrastructure.DB, logger *zap.SugaredLogger) CarStorage {
 }
 
 func (c carStorage) Create(ctx context.Context, car *model.Car) error {
-	_, err := c.dbConn.Insert().Model(car).On("DUPLICATE KEY UPDATE").Exec(ctx)
+	_, err := c.dbConn.Insert().Model(car).Exec(ctx)
 	if err != nil {
 		c.log.Error(err)
 		return err

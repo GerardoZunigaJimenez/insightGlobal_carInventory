@@ -91,10 +91,17 @@ func (h carHandler) List(w http.ResponseWriter, req bunrouter.Request) error {
 }
 
 func (h carHandler) Update(w http.ResponseWriter, req bunrouter.Request) error {
+	id := req.Params().ByName("id")
+
 	var car model.Car
 	if err := json.NewDecoder(req.Body).Decode(&car); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return bunrouter.JSON(w, bunrouter.H{"message": "invalid request body"})
+	}
+
+	if id != car.ID.String() {
+		w.WriteHeader(http.StatusBadRequest)
+		return bunrouter.JSON(w, bunrouter.H{"message": "car ID in path and body must match"})
 	}
 
 	updatedCar, err := h.carService.Update(req.Context(), &car)

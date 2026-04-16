@@ -29,7 +29,8 @@ func (c carService) Create(ctx context.Context, car *model.Car) (*model.Car, err
 	if err := c.repository.CarStorage().Create(ctx, car); err != nil {
 		return nil, err
 	}
-	return car, nil
+
+	return c.repository.CarStorage().GetByID(ctx, car.ID)
 }
 
 func (c carService) GetByID(ctx context.Context, id string) (*model.Car, error) {
