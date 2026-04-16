@@ -56,7 +56,7 @@ func TestHealthCheckService_PingMysql(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := newHealthCheckService(tt.repository())
+			s := NewHealthCheckService(tt.repository())
 
 			if mockRepo != nil {
 				mockRepo.On("Ping", ctx).Return(tt.repositoryErr)

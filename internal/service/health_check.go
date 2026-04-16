@@ -15,7 +15,7 @@ type healthCheckService struct {
 	repository repository.Repository
 }
 
-func newHealthCheckService(r repository.Repository) *healthCheckService {
+func NewHealthCheckService(r repository.Repository) *healthCheckService {
 	return &healthCheckService{repository: r}
 }
 

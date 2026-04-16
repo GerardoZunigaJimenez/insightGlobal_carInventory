@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"insightGlobal_carInventory/internal/handler"
 	"insightGlobal_carInventory/internal/infrastructure"
 	"net/http"
 	"os"
@@ -15,7 +16,6 @@ import (
 	"insightGlobal_carInventory/internal/config"
 
 	bun "github.com/uptrace/bunrouter"
-	"github.com/uptrace/bunrouter/extra/reqlog"
 	"go.uber.org/zap"
 	// necessary Postgres driver
 	_ "github.com/lib/pq"
@@ -23,25 +23,25 @@ import (
 
 const (
 	ServerShutdownTimeout = 5 * time.Second
-	ServerPort            = "8080"
 )
 
 type app struct {
-	config *config.Application
-	log    *zap.SugaredLogger
-	ctx    context.Context
-	router *bun.Router
+	config   *config.Application
+	handlers handler.Handlers
+	log      *zap.SugaredLogger
+	ctx      context.Context
+	router   *bun.Router
 }
 
-func (a *app) start(appConfig *config.Application) {
+func (a *app) start() {
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", ServerPort),
+		Addr:    fmt.Sprintf(":%s", a.config.ServerPort),
 		Handler: a.router,
 	}
 
 	go func() {
 		// service connections
-		a.log.Info(fmt.Sprintf("Listening %s...", ServerPort))
+		a.log.Info(fmt.Sprintf("Listening %s...", a.config.ServerPort))
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			a.log.Fatalf("listen: %s\n", err)
 		}
@@ -82,19 +82,19 @@ func ServeAPI() {
 		infrastructure.NewGCPConnection(ctx, config.NewGCP())
 	}
 	dbConfig := config.NewDB()
-	dbConn := infrastructure.NewBunMysqlClient(ctx, log, dbConfig)
-
-	repositories := repository.NewRepositories(log)
+	dbConn := infrastructure.NewBunPostgresClient(ctx, log, dbConfig)
+	handlers := handler.NewHandlers(dbConn, log)
 
 	var app = &app{
-		config: appConfig,
-		ctx:    ctx,
-		log:    log,
-		router: bun.New(bun.Use(reqlog.NewMiddleware())),
+		config:   appConfig,
+		handlers: handlers,
+		ctx:      ctx,
+		log:      log,
+		router:   bun.New(bun.Use()),
 	}
 
 	app.setHealthRoute()
 	app.setAPIRoutes()
 
-	app.start(appConfig)
+	app.start()
 }
