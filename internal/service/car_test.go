@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -30,7 +31,8 @@ func TestCarService_Create(t *testing.T) {
 			},
 			mockSetup: func(repo *repositoryMocks.MockRepository, carStorage *repositoryMocks.MockCarStorage, inputCar *model.Car) {
 				repo.On("CarStorage").Return(carStorage)
-				carStorage.On("Create", ctx, inputCar).Return(nil)
+				carStorage.On("Create", ctx, inputCar).Return(nil).Once()
+				carStorage.On("GetByID", ctx, mock.Anything).Return(inputCar, nil).Once()
 			},
 			assertFunc: func(t *testing.T, got *model.Car, err error, inputCar *model.Car) {
 				require.NoError(t, err)
