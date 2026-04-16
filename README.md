@@ -19,7 +19,7 @@ mockery
 
 Install Postgres & Run this dumpy.sql file to create the database
 ```
-
+local_dump/carsInventory.sql
 ```
 
 
